@@ -18,6 +18,7 @@ package main
 import (
 	"flag"
 	"os"
+	"time"
 
 	samplecontrollerv1alpha1 "foo-controller-kubebuilder/api/v1alpha1"
 
@@ -55,7 +56,10 @@ func main() {
 		o.Development = true
 	}))
 
+	var resyncPeriod = time.Second * 30
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+		SyncPeriod: &resyncPeriod,
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
 		LeaderElection:     enableLeaderElection,
@@ -70,6 +74,7 @@ func main() {
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Foo"),
 		Scheme: mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("foo-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Foo")
 		os.Exit(1)
